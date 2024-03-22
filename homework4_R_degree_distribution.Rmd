@@ -1,0 +1,89 @@
+---
+title: "R homework -- Degree distribution and connected components"
+date: "MAT690 NetSci - Ye Chen"
+output:
+  html_document:
+    toc: yes
+---
+
+
+#### Problem 1. 
+Generate a random network $G(n,p)$. If there are too many vertices and edges, you can change the edge size and vertex size for a better figure.
+```{r}
+library(igraph)
+n=500 #number of nodes
+p=0.003 #probability 
+g <- erdos.renyi.game(n, p, type = "gnp") #generate a random graphs in G(n,p) 
+plot(g, vertex.label= NA, edge.arrow.size=0.02,vertex.size = 0.5, xlab = "Random Network: G(N,p) model")
+```
+
+Check the degree of each vertex.
+```{r}
+degree(g) 
+```
+
+You can summerize the degree distribution using one of the following commands.
+```{r}
+hist(degree(g))
+degree_distribution(g)
+plot(0:max(degree(g)),degree_distribution(g)) 
+plot(0:max(degree(g)),degree_distribution(g),type = "l", col="green")
+```
+
+Next, compare the theoretical distribution to the simulated distributions. The red curve is the theoretical distribution, green curve is the simulated distribution.
+```{r, animation.hook="gifski"}
+library(gifski)
+k=0:20
+simulation_number=10
+for (i in 1:simulation_number){
+  #hold on for the next graph
+  g <- erdos.renyi.game(n, p, type = "gnp") #generate a random graphs in G(N,p) 
+  plot(k,((n-1)*p)^k*exp(p-n*p)/factorial(k), type = "l", col = "red",xlim = c(0,20),ylim = c(0,1),ylab = NA)
+  par(new=TRUE)
+  plot( 0:max(degree(g)), degree_distribution(g),type = "l", col="green" ,xlim = c(0,20),ylim = c(0,1))
+  #you can skip the par(new=TRUE) command if you replace the second 'plot' by 'lines' as the following
+  #lines( k[1:length(degree_distribution(g))], degree_distribution(g), col="green" ,xlim = c(0,50),ylim = c(0,1))
+}
+dev.off()
+```
+#### <span style="color: red;"> Your job. </span> 
+Pick a large unweighted undirected network you think the connections between any two nodes should be random in http://networkrepository.com/. 
+
+(1) Plot the network.
+
+(2) Plot the degree distribution together with the Poisson distribution. 
+
+(3) Does the network you picked has the degree distribution close to a Poisson distribution?
+
+#### Problem 2. 
+
+We are to simulate some networks using the $G(n,p)$ model and discover how the p related to u (the size of the largest connected component/N).
+```{r}
+n=500
+p=0.0016
+g <- erdos.renyi.game(n, p, type = "gnp") #generate a random graphs in G(N,p) 
+```
+ 
+```{r}
+comp <- components(g)
+comp
+comp$csize
+max(comp$csize)
+max(comp$csize)/n #this is u
+```
+Generate 50 random graphs, and compute the average u.
+```{r}
+simulation_number=50
+simulation_result=rep(0,simulation_number)
+for (i in 1:simulation_number){
+  g <- erdos.renyi.game(n, p, type = "gnp")
+  simulation_result[i]=max(comp$csize)/n
+}
+mean(simulation_result)
+```
+#### <span style="color: red;"> Your job. </span> 
+Generate 100 different p in a reasonable range, compute the mean of u for different p.
+
+(1) Plot the p-u curve.
+
+(2) Do you see that for large p, the network is always connected? (If not, make the p large enough to see it.)
